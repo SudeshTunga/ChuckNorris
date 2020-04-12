@@ -2,15 +2,19 @@ package com.example.chucknorris;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.example.chucknorris.entities.QuoteLoreResponse;
 import com.example.chucknorris.entities.QuoteService;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Random;
 
 import retrofit2.Call;
@@ -23,13 +27,21 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView Quote;
     private ImageButton Meme;
+    public ArrayList<Integer> numbers = new ArrayList();
+    public Button playvideo;
+    public static final String EXTRA_MESSAGE = "com.example.chucknorris.MainActivity.MESSAGE";
 
     //this application accomplishes 2 main things:
 
-    //- whenever a meme is clicked a new quote ir retrieved from the chuck norris api under the 'dev' category.
+    //- whenever a meme is clicked a new quote is retrieved from the chuck norris api under the 'dev' category.
     //- this is done in the getQuote method whereby retrofit is used to create a call for this quote based on the 'dev' category.
     //- an enqueue is then used to ensure that the call is done asynchronously.
     //- whenever a meme is clicked a randomised number between 1-8 is created.
+    //- Multiple checks have been used to ensure that random numbers do not double up.
+    //-I have added the ability to watch a chuck norris youtube video by pressing the play video button which sends an intent.
+    //-the intent sends you to a detail activity where you can watch "Top 10 Chuck Norris Moments" by pressing the play button.
+    //-Source for video: www.youtube.com. (n.d.). Top 10 Chuck Norris Moments. [online] Available at: https://www.youtube.com/watch?v=VsabFEisZ2Y [Accessed 12 Apr. 2020].
+    //- PLEASE MAKE SURE TO CLEAN YOUR BUILD BEFORE YOU RUN THIS APP IN ORDER FOR THE VIDEO TO WORK.
     //- based on this number a random generic chuck norris meme from the internet is generated.
     //- Sources for memes:
     //- meme 1: therichestimages. 2020. therichestimages. [ONLINE] Available at: https://static0.therichestimages.com/wordpress/wp-content/uploads/2019/12/feature-chuck-norris.jpg. [Accessed 4 April 2020].
@@ -48,19 +60,70 @@ public class MainActivity extends AppCompatActivity {
 
         Meme = findViewById(R.id.Meme);
         Quote = findViewById(R.id.Quote);
+        playvideo = findViewById(R.id.playvideo);
 
         Meme.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Quote.setText("Getting Quote, Please Wait...");
                 getQuote();
-                getMeme();
+
+                Random rand = new Random();
+                int min = 1;
+                int max = 8;
+
+                int x = rand.nextInt((max - min) + min);
+
+                numbers.add(x);
+
+                int previousnumber = numbers.get(numbers.size() - 2);
+
+                if (previousnumber == 0) {
+
+                    x = x + 2;
+                }
+
+                if (previousnumber == x) {
+                    Log.d("Main Activity", "RANDOM NUMBER EQUALS PREV: " + x);
+                    x = x + 1;
+                    Log.d("Main Activity", "UPDATED NUMBER: " + x);
+                    int index = numbers.indexOf(previousnumber);
+                    numbers.set(index, x + 1);
+                    if (x > 8) {
+                        x = 1;
+
+                    }
+                }
+
+                if (previousnumber == 1 && x == 1) {
+
+                    x = x + 2;
+
+                    Log.d("Main Activity", "UPDATED X when X=1: " + x);
+                }
+
+                getMeme(x, numbers, Meme);
+
+
 
             }
         });
         Quote.setText("Getting Quote, Please Wait...");
         getQuote();
-        getMeme();
+
+        int num = 1;
+        numbers.add(num);
+
+        getMeme(1, numbers, Meme);
+
+
+        playvideo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getBaseContext(), Detail.class);
+                startActivity(intent);
+            }
+        });
 
     }
 
@@ -94,12 +157,51 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void getMeme() {
-        Random rand = new Random();
-        int min = 1;
-        int max = 8;
+    public static int getMeme(int x, ArrayList<Integer> numbers, ImageButton Meme) {
 
-        int x = rand.nextInt((max - min) + min);
+        if (numbers.size() > 2) {
+
+            int previousnumber = numbers.get(numbers.size() - 2);
+            Log.d("Main Activity", "previous number: " + previousnumber);
+
+            if (previousnumber == 0) {
+
+                x = x + 2;
+            }
+
+
+            if (previousnumber == 1 && x == 1) {
+
+                x = x + 2;
+            }
+
+            if (x > 8) {
+
+                x = 2;
+
+                Log.d("Main Activity", "RANDOM NUMBER GREATER THAN 8: " + x);
+            }
+            if (x == 0) {
+
+                x = x + 1;
+            }
+
+            if (previousnumber == x) {
+                Log.d("Main Activity", "RANDOM NUMBER EQUALS PREV: " + x);
+                x = x + 1;
+                Log.d("Main Activity", "UPDATED NUMBER: " + x);
+
+                if (x > 8) {
+                    x = 2;
+
+                    Log.d("Main Activity", "RANDOM NUMBER GREATER THAN 8: " + x);
+                }
+            }
+
+        }
+
+
+
 
         if (x == 1) {
             Meme.setImageResource(R.drawable.meme_1);
@@ -127,6 +229,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         Log.d("Main Activity", "random number: " + x);
+        int x1 = 0;
+        return x1;
 
     }
 
